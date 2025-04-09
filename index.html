@@ -1,20 +1,109 @@
-<script>
-  document.getElementById('booking-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const form = e.target;
-    const formData = new FormData(form);
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>PT Runge Terminbuchung</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Termin buchen</h2>
+  <form id="booking-form">
+    <label for="name">Name und Nachname</label>
+    <input type="text" name="name" id="name" required>
 
-    fetch('https://script.google.com/macros/s/AKfycbyPI59hVnEgTIRIWSk40FgF6CpCyB9GzvYXsQcokPB7dnnan2gM9p3OOSFoiG2TYHbqeQ/exec', {
-      method: 'POST',
-      body: formData,
-      mode: 'no-cors'
-    }).then(() => {
+    <label for="service">Dienstleistung</label>
+    <select name="service" id="service" required>
+      <option value="ca 30 min Behandlung">ca 30 min Behandlung</option>
+      <option value="ca 60 min Behandlung">ca 60 min Behandlung</option>
+      <option value="MagnetfeldMatte">MagnetfeldMatte</option>
+      <option value="RegenerationsBoots">RegenerationsBoots</option>
+      <option value="Saunamatte">Saunamatte</option>
+      <option value="Schröpfen">Schröpfen</option>
+    </select>
+
+    <label for="date">Datum</label>
+    <input type="date" name="date" id="date" required>
+
+    <label for="time">Zeit</label>
+    <select name="time" id="time" required>
+      <!-- Zeiten werden hier dynamisch eingefügt -->
+    </select>
+
+    <button type="submit">Buchen</button>
+  </form>
+
+  <script>
+    const form = document.getElementById('booking-form');
+
+    // Dynamische Zeit-Slots je nach Dienstleistung
+    const timeSelect = document.getElementById('time');
+    const serviceSelect = document.getElementById('service');
+    const dateInput = document.getElementById('date');
+
+    function generateTimeSlots(stepMinutes) {
+      const slots = [];
+      const startHour = 9;
+      const endHour = 18;
+      for (let hour = startHour; hour < endHour; hour++) {
+        for (let min = 0; min < 60; min += stepMinutes) {
+          const h = String(hour).padStart(2, '0');
+          const m = String(min).padStart(2, '0');
+          slots.push(`${h}:${m}`);
+        }
+      }
+      return slots;
+    }
+
+    function updateTimeSlots() {
+      const service = serviceSelect.value;
+      const step = service === "ca 60 min Behandlung" ? 60 : 30;
+      const slots = generateTimeSlots(step);
+      timeSelect.innerHTML = '';
+      slots.forEach(slot => {
+        const opt = document.createElement('option');
+        opt.value = slot;
+        opt.textContent = slot;
+        timeSelect.appendChild(opt);
+      });
+    }
+
+    serviceSelect.addEventListener('change', updateTimeSlots);
+    dateInput.addEventListener('change', updateTimeSlots);
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(form);
+      fetch('https://script.google.com/macros/s/AKfycbyPI59hVnEgTIRIWSk40FgF6CpCyB9GzvYXsQcokPB7dnnan2gM9p3OOSFoiG2TYHbqeQ/exec', {
+        method: 'POST',
+        body: formData,
+        mode: 'no-cors'
+      });
+
       alert("Erfolgreich gesendet!");
       form.reset();
-      document.getElementById('time').innerHTML = ""; // сброс слотов
-    }).catch(() => {
-      alert("Es gab einen Fehler.");
+      timeSelect.innerHTML = '';
     });
-  });
-</script>
+
+    // Initiale Zeit-Slots laden
+    updateTimeSlots();
+  </script>
+</body>
+</html>
