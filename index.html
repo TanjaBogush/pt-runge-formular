@@ -24,12 +24,12 @@
   </style>
 </head>
 <body>
-  <h2>Termin buchen</h2>
+  <h2>PT Runge - Anmeldung</h2>
   <form id="booking-form">
-    <label for="name">Name und Nachname</label>
+    <label for="name">Vor- und Nachname *</label>
     <input type="text" name="name" id="name" required>
 
-    <label for="service">Dienstleistung</label>
+    <label for="service">Behandlung *</label>
     <select name="service" id="service" required>
       <option value="ca 30 min Behandlung">ca 30 min Behandlung</option>
       <option value="ca 60 min Behandlung">ca 60 min Behandlung</option>
@@ -39,15 +39,16 @@
       <option value="Schröpfen">Schröpfen</option>
     </select>
 
-    <label for="date">Datum</label>
+    <label for="date">Datum *</label>
     <input type="date" name="date" id="date" required>
 
-    <label for="time">Zeit</label>
+    <label for="time">Zeit *</label>
     <select name="time" id="time" required>
-      <!-- Zeiten werden hier dynamisch eingefügt -->
+      <option value="">-- Bitte zuerst Datum & Behandlung wählen --</option>
+	  <!-- Zeiten werden hier dynamisch eingefügt -->
     </select>
 
-    <button type="submit">Buchen</button>
+    <button type="submit">Absenden</button>
   </form>
 
   <script>
