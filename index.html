@@ -82,8 +82,7 @@
       const formData = new FormData(form);
       fetch('https://script.google.com/macros/s/AKfycbyPI59hVnEgTIRIWSk40FgF6CpCyB9GzvYXsQcokPB7dnnan2gM9p3OOSFoiG2TYHbqeQ/exec', {
         method: 'POST',
-        body: formData,
-        mode: 'no-cors'
+        body: formData
       })
       .then(response => {
         if (response.ok) {
