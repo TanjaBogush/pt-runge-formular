@@ -39,8 +39,8 @@
     <button type="submit">Absenden</button>
   </form>
 
-  <script>
-    const form = document.getElementById('booking-form');
+<script>
+    const form = document.getElementById('bookingForm');
 
     // Dynamische Zeit-Slots je nach Dienstleistung
     const timeSelect = document.getElementById('time');
@@ -84,9 +84,19 @@
         method: 'POST',
         body: formData,
         mode: 'no-cors'
+      })
+      .then(response => {
+        if (response.ok) {
+          alert("Erfolgreich gesendet!");
+        } else {
+          alert("Fehler beim Senden der Daten!");
+        }
+      })
+      .catch(error => {
+        alert("Fehler beim Senden der Daten!");
+        console.error(error);
       });
 
-      alert("Erfolgreich gesendet!");
       form.reset();
       timeSelect.innerHTML = '';
     });
