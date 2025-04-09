@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>PT Runge - Anmeldung</title>
+  <style>
+    body { font-family: sans-serif; max-width: 500px; margin: 2rem auto; }
+    label { display: block; margin-top: 1rem; }
+    select, input { width: 100%; padding: 0.5rem; margin-top: 0.3rem; }
+    button { margin-top: 1.5rem; padding: 0.7rem; width: 100%; background-color: #4CAF50; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background-color: #45a049; }
+  </style>
+</head>
+<body>
+  <h2>PT Runge - Anmeldung</h2>
+  <form id="bookingForm">
+    <label for="name">Vor- und Nachname *</label>
+    <input type="text" id="name" name="name" required />
+
+    <label for="service">Behandlung *</label>
+    <select id="service" name="service" required>
+      <option value="">-- Bitte wählen --</option>
+      <option value="ca 30 min Behandlung">ca 30 min Behandlung</option>
+      <option value="ca 60 min Behandlung">ca 60 min Behandlung</option>
+      <option value="MagnetfeldMatte">MagnetfeldMatte</option>
+      <option value="RegenerationsBoots">RegenerationsBoots</option>
+      <option value="Saunamatte">Saunamatte</option>
+      <option value="Schröpfen">Schröpfen</option>
+    </select>
+
+    <label for="date">Datum *</label>
+    <input type="date" id="date" name="date" required />
+
+    <label for="time">Zeit *</label>
+    <select id="time" name="time" required>
+      <option value="">-- Bitte zuerst Datum & Behandlung wählen --</option>
+    </select>
+
+    <button type="submit">Absenden</button>
+  </form>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyPI59hVnEgTIRIWSk40FgF6CpCyB9GzvYXsQcokPB7dnnan2gM9p3OOSFoiG2TYHbqeQ/exec";
+    const serviceInput = document.getElementById("service");
+    const dateInput = document.getElementById("date");
+    const timeSelect = document.getElementById("time");
+
+    async function fetchBookedSlots(date) {
+      try {
+        const response = await fetch(`${scriptURL}?date=${date}`);
+        return await response.json();
+      } catch (err) {
+        console.error("Fehler beim Laden der Daten:", err);
+        return { booked: [] };
+      }
+    }
+
+    function generateTimeSlots(service, booked) {
+      const slots = [];
+      const startHour = 9;
+      const endHour = 17;
+      const step = service === "ca 60 min Behandlung" ? 60 : 30;
+
+      for (let h = startHour; h < endHour; h++) {
+        for (let m = 0; m < 60; m += step) {
+          const from = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+          const fromMin = h * 60 + m;
+          const toMin = fromMin + step;
+
+          const conflict = booked.some(entry => {
+            const entryStart = parseInt(entry.start.split(":")[0]) * 60 + parseInt(entry.start.split(":")[1]);
+            const entryEnd = parseInt(entry.end.split(":")[0]) * 60 + parseInt(entry.end.split(":")[1]);
+            const sameGroup = ["ca 30 min Behandlung", "ca 60 min Behandlung"].includes(service) &&
+                              ["ca 30 min Behandlung", "ca 60 min Behandlung"].includes(entry.service);
+            return sameGroup && (
+              (fromMin >= entryStart && fromMin < entryEnd) ||
+              (toMin > entryStart && toMin <= entryEnd) ||
+              (fromMin <= entryStart && toMin >= entryEnd)
+            );
+          });
+
+          if (!conflict) slots.push(from);
+        }
+      }
+
+      return slots;
+    }
+
+    async function updateTimeOptions() {
+      const service = serviceInput.value;
+      const date = dateInput.value;
+      timeSelect.innerHTML = "<option>Lädt...</option>";
+
+      if (!service || !date) return;
+
+      const data = await fetchBookedSlots(date);
+      const times = generateTimeSlots(service, data.booked);
+
+      timeSelect.innerHTML = times.length ?
+        times.map(t => `<option value="${t}">${t}</option>`).join("") :
+        `<option>Keine verfügbaren Zeiten</option>`;
+    }
+
+    serviceInput.addEventListener("change", updateTimeOptions);
+    dateInput.addEventListener("change", updateTimeOptions);
+
+    document.getElementById("bookingForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+
+      const response = await fetch(scriptURL, {
+        method: "POST",
+        body: new URLSearchParams(formData),
+      });
+
+      if (response.ok) {
+        alert("Termin erfolgreich gebucht!");
+        e.target.reset();
+        timeSelect.innerHTML = "<option value=''>-- Bitte zuerst Datum & Behandlung wählen --</option>";
+      } else {
+        alert("Fehler beim Absenden des Formulars.");
+      }
+    });
+  </script>
+</body>
+</html>
